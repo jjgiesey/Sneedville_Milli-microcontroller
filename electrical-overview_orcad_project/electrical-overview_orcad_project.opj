@@ -1,0 +1,55 @@
+(ExpressProject "Ruggeduino-schematic"
+  (ProjectVersion "19981106")
+  (ProjectType "Analog or A/D Mixed Mode")
+  (Folder "Design Resources"
+    (Folder "Library")
+    (NoModify)
+    (File ".\electrical-overview_orcad_project.DSN"
+      (Type "Schematic Design")
+      (DisplayName ".\electrical-overview_orcad_project.DSN"))
+    (BuildFileAddedOrDeleted "x")
+    (CompileFileAddedOrDeleted "x"))
+  (Folder "Outputs")
+  (Folder "PSpice Resources"
+    (Folder "Simulation Profiles")
+    (Folder "Model Libraries"
+      (Sort User))
+    (Folder "Stimulus Files"
+      (Sort User))
+    (Folder "Include Files"
+      (Sort User)))
+  (DefaultLibraryBrowseDirectory "library\PSpice")
+  (PartMRUSelector
+    (MLED81
+      (FullPartName "MLED81.Normal")
+      (LibraryName "C:\CADENCE\SPB_17.2\TOOLS\CAPTURE\LIBRARY\PSPICE\OPTO.OLB")
+      (DeviceIndex "0"))
+    (R
+      (FullPartName "R.Normal")
+      (LibraryName
+         "C:\CADENCE\SPB_17.2\TOOLS\CAPTURE\LIBRARY\PSPICE\ANALOG.OLB")
+      (DeviceIndex "0"))
+    (OFFPAGELEFT-R
+      (LibraryName "C:\CADENCE\SPB_17.2\TOOLS\CAPTURE\LIBRARY\CAPSYM.OLB")
+      (DeviceIndex "0")))
+  (GlobalState
+    (FileView
+      (Path "Design Resources")
+      (Path "Design Resources"
+         "D:\Projects\Sneedville-Microcontroller\electrical-overview_orcad_project\electrical-overview_orcad_project.DSN")
+      (Path "Design Resources"
+         "D:\Projects\Sneedville-Microcontroller\electrical-overview_orcad_project\electrical-overview_orcad_project.DSN"
+         "SCHEMATIC1")
+      (Path "PSpice Resources")
+      (Select "Design Resources"
+         "D:\Projects\Sneedville-Microcontroller\electrical-overview_orcad_project\electrical-overview_orcad_project.DSN"
+         "SCHEMATIC1" "PAGE1"))
+    (HierarchyView)
+    (Doc
+      (Type "COrCapturePMDoc")
+      (Frame
+        (Placement "44 2 3 -1 -1 -8 -30 0 200 0 553"))
+      (Tab 0)))
+  (MPSSessionName "Casey")
+  (LastUsedLibraryBrowseDirectory
+     "C:\Cadence\SPB_17.2\tools\capture\library\pspice"))
