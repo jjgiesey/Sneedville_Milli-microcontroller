@@ -14,7 +14,7 @@
 ###### Ruggeduino - modifications & testing
 *********************************************************************************************************************************
 
-  Arduino Software IDE can be used to verify, compile, and upload the code to an Arduino or Ruggeduino, and is found here:  
+  Arduino Software IDE can be used to verify, compile, and upload the code to an Arduino or Ruggeduino. Find it here:  
   <br>
   https://www.arduino.cc/en/Main/Software  
   <br>
