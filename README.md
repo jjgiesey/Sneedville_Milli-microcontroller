@@ -2,7 +2,7 @@
   Program for the Ruggeduino in the system-monitoring design for the Cedar Grove Baptist Church clean water project in
   Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for the 2020
   spring semester at the following GitHub repository:  
-  <span style="display:block;text-align:center">https://github.com/Milligan-Engineering/Sneedville-Microcontroller</span>
+  https://github.com/Milligan-Engineering/Sneedville-Microcontroller  
   Should the project require maintenance/changes/improvements/additions in the future, this repository should serve as a
   reference for other contributors.
   <br><br>
@@ -10,7 +10,7 @@
 ###### Ruggeduino - modifications & testing
 *********************************************************************************************************************************
   Arduino Software IDE can be used to verify, compile, and upload the code to an Arduino or Ruggeduino, and is found here:  
-  <span style="display:block;text-align:center">https://www.arduino.cc/en/Main/Software</span>
+  https://www.arduino.cc/en/Main/Software  
   A Ruggeduino is essentially an Arduino that has been ruggedized to tolerate temperatures, voltages, and currents well above
   what would destroy a normal Arduino. Ruggeduinos are much better suited for industrial-like projects with continuous long-term
   operation and harsh environmental conditions compared to normal Arduinos, which are intended for lightweight home and
@@ -19,7 +19,7 @@
   Ruggeduino-SE ST used in this project is directly compatible with the Arduino UNO boards used in the labs for Computer
   Engineering II at Milligan. One caveat--a USB driver will need to be installed on a computer the first time a Ruggeduino-SE is
   connected to it, which can be obtained here:  
-  <span style="display:block;text-align:center">https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers</span>
+  https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers  
   <br>
 *********************************************************************************************************************************
 ###### Repository structure
