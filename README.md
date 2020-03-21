@@ -1,4 +1,5 @@
 ## Sneedville-Microcontroller  
+
   Program for the Ruggeduino in the system-monitoring design for the Cedar Grove Baptist Church clean water project in
   Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for the 2020
   spring semester at the following GitHub repository:  
@@ -8,9 +9,11 @@
   Should the project require maintenance/changes/improvements/additions in the future, this repository should serve as a
   reference for other contributors.  
   <br>
+
 *********************************************************************************************************************************
 ###### Ruggeduino - modifications & testing
 *********************************************************************************************************************************
+
   Arduino Software IDE can be used to verify, compile, and upload the code to an Arduino or Ruggeduino, and is found here:  
   <br>
   https://www.arduino.cc/en/Main/Software  
@@ -26,17 +29,21 @@
   <br>
   https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers  
   <br>
+
 *********************************************************************************************************************************
 ###### Repository structure
 *********************************************************************************************************************************
+
   - All code is in the C programming language and is contained within the single file 'Sneedville-Microcontroller.ino', located
     in the same directory as this README  
   - 'electrical-overview.png' is a schematic that gives an overview of all electrical connections for the Cedar Grove project  
   - The 'electrical-overview_orcad_project' folder contains an OrCAD Capture project that can be used to update the schematic  
   <br>
+
 *********************************************************************************************************************************
 ###### Parts referenced in the electrical overview schematic
 *********************************************************************************************************************************
+
   - Ruggeduino-SE ST microcontroller
       - https://www.rugged-circuits.com/microcontroller-boards/ruggeduino-se-special-edition-mpdes
   - ASI NDB2-63C20-1 circuit breaker
