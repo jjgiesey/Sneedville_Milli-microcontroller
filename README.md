@@ -4,15 +4,15 @@
   Program for the Ruggeduino in the system-monitoring design for the Cedar Grove Baptist Church clean water project in
   Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for the 2020
   spring semester at the following GitHub repository:  
-  - https://github.com/Milligan-Engineering/Sneedville-Microcontroller  
+  - [ ] https://github.com/Milligan-Engineering/Sneedville-Microcontroller  
   Should the project require maintenance/changes/improvements/additions in the future, this repository should serve as a
   reference for other contributors.  
-  
+  \
 *********************************************************************************************************************************
 ###### Ruggeduino - modifications & testing
 *********************************************************************************************************************************
   Arduino Software IDE can be used to verify, compile, and upload the code to an Arduino or Ruggeduino, and can be found at:  
-  - https://www.arduino.cc/en/Main/Software  
+  - [ ] https://www.arduino.cc/en/Main/Software  
   A Ruggeduino is essentially an Arduino that has been ruggedized to tolerate temperatures, voltages, and currents well above
   what would destroy a normal Arduino. Ruggeduinos are much better suited for industrial-like projects with continuous long-term
   operation and harsh environmental conditions compared to normal Arduinos, which are intended for lightweight home and
@@ -21,16 +21,16 @@
   Ruggeduino-SE ST used in this project is directly compatible with the Arduino UNO boards used in the labs for Computer
   Engineering II at Milligan. One caveat--a USB driver will need to be installed on a computer the first time a Ruggeduino-SE is
   connected to it, which can be obtained here:  
-  - https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers  
-  
+  - [ ] https://www.silabs.com/products/development-tools/software/usb-to-uart-bridge-vcp-drivers  
+  \
 *********************************************************************************************************************************
 ###### Repository structure
 *********************************************************************************************************************************
-- [ ] All code is in the C programming language and is contained within the single file 'Sneedville-Microcontroller.ino', located
-    in the same directory as this README
-- [ ] 'electrical-overview.png' is a schematic that gives an overview of all electrical connections for the Cedar Grove project
-- [ ] The 'electrical-overview_orcad_project' folder contains an OrCAD Capture project that can be used to update the schematic  
-  
+  \- All code is in the C programming language and is contained within the single file 'Sneedville-Microcontroller.ino', located
+    in the same directory as this README  
+  \- 'electrical-overview.png' is a schematic that gives an overview of all electrical connections for the Cedar Grove project  
+  \- The 'electrical-overview_orcad_project' folder contains an OrCAD Capture project that can be used to update the schematic  
+  \
 *********************************************************************************************************************************
 ###### Parts referenced in the electrical overview schematic
 *********************************************************************************************************************************
