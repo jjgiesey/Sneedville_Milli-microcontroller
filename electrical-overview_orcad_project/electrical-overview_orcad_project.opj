@@ -36,13 +36,13 @@
     (FileView
       (Path "Design Resources")
       (Path "Design Resources"
-         "D:\Projects\Sneedville-Microcontroller\electrical-overview_orcad_project\electrical-overview_orcad_project.DSN")
+         "C:\Users\Casey\source\repos\Sneedville-Microcontroller\electrical-overview_orcad_project\electrical-overview_orcad_project.DSN")
       (Path "Design Resources"
-         "D:\Projects\Sneedville-Microcontroller\electrical-overview_orcad_project\electrical-overview_orcad_project.DSN"
+         "C:\Users\Casey\source\repos\Sneedville-Microcontroller\electrical-overview_orcad_project\electrical-overview_orcad_project.DSN"
          "SCHEMATIC1")
       (Path "PSpice Resources")
       (Select "Design Resources"
-         "D:\Projects\Sneedville-Microcontroller\electrical-overview_orcad_project\electrical-overview_orcad_project.DSN"
+         "C:\Users\Casey\source\repos\Sneedville-Microcontroller\electrical-overview_orcad_project\electrical-overview_orcad_project.DSN"
          "SCHEMATIC1" "PAGE1"))
     (HierarchyView)
     (Doc
