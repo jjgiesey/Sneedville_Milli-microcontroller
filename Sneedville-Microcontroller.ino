@@ -12,7 +12,13 @@
   reference for other contributors.
 
   A brief overview of the structure of this code and how it is used in the project:
-  - (to be done)
+  - the REOZONATE LED and speaker alert are triggered for all reset sources (power-on, external, watchdog system, and brown-out)
+  - whenever reset from a safe (uncontaminated) system state, clear the LED/speaker alert with the RESET_REOZONATE button
+  - calibration points and decision thresholds are grouped together as global constants
+  - UV-C fluence rate [mW/cm²], pressure [psig], and differential pressure [psiΔ] readings are handled by timer-based interrupts
+  - for these sensors/transmitters, interrupt frequencies were chosen to be > 2.205 / (response time from datasheet [s])
+  - the interrupts also handle the LED outputs and button/switch inputs
+  - system flow, UV-C fluence [mW-s/cm²], temperature, and speaker output are determined once per ~49 seconds by the main loop
 
   For more information on the project, see the 'README.md' file in the Github repository.
 */
@@ -69,7 +75,7 @@ void setup() {
   replace_filters_state = (bool)EEPROM.read(REPLACE_FILTERS); // read REPLACE_FILTERS state from non-volatile memory
   replace_uv_bulb_state = (bool)EEPROM.read(REPLACE_UV_BULB); // read REPLACE_UV_BULB state from non-volatile memory
 
-  // initialize digital pin inputs:
+  // initialize digital pin inputs with internal pull-up resistors enabled:
   pinMode(RESET_REOZONATE, INPUT_PULLUP);
   pinMode(RESET_FILTERS, INPUT_PULLUP);
   pinMode(RESET_UV_BULB, INPUT_PULLUP);
@@ -89,31 +95,25 @@ void setup() {
   digitalWrite(TRICKLE_VALVE, LOW);
 
   // set TIMER0 interrupt at 1.1 kHz for reading pressure transmitter:
-  TCCR0A = 0;
-  TCCR0B = 0;
-  TCNT0 = 0;
-  OCR0A = 225;
-  TCCR0A |= (1 << WGM01);
-  TCCR0B |= (1 << CS01) | (1 << CS00);
-  TIMSK0 |= (1 << OCIE0A);
+  TCCR0A = 1 << WGM01; // set clear timer on compare mode
+  TCCR0B = 1 << CS01 | 1 << CS00; // set prescaler to 64
+  TCNT0 = 0; // reset counter to 0
+  OCR0A = 225; // set output compare register A to trigger on count 225: 16 MHz / (64 * (225 + 1)) = 1.1 kHz
+  TIMSK0 = 1 << OCIE0A; // enable interrupt on output compare A match
 
   // set TIMER1 interrupt at 44.1 Hz for reading differential pressure transmitter:
   TCCR1A = 0;
-  TCCR1B = 0;
-  TCNT1  = 0;
-  OCR1A = 45350;
-  TCCR1B |= (1 << WGM12);
-  TCCR1B |= (1 << CS11);
-  TIMSK1 |= (1 << OCIE1A);
+  TCCR1B = 1 << WGM12 | 1 << CS11; // set clear timer on compare mode and prescaler to 8
+  TCNT1  = 0; // reset counter to 0
+  OCR1A = 45350; // set output compare register A to trigger on count 45350: 16 MHz / (8 * (45350 + 1)) = 44.1 Hz
+  TIMSK1 = 1 << OCIE1A; // enable interrupt on output compare A match
 
   //set TIMER2 interrupt at 2.4 kHz for reading UV-C sensor:
-  TCCR2A = 0;
-  TCCR2B = 0;
-  TCNT2 = 0;
-  OCR2A = 208;
-  TCCR2A |= (1 << WGM21);
-  TCCR2B |= (1 << CS21) | (1 << CS20);
-  TIMSK2 |= (1 << OCIE2A);
+  TCCR2A = 1 << WGM21; // set clear timer on compare mode
+  TCCR2B = 1 << CS21 | 1 << CS20; //set prescaler to 32
+  TCNT2 = 0; // reset counter to 0
+  OCR2A = 208; // set output compare register A to trigger on count 208: 16 MHz / (65 * (508 + 1)) = 2.4 kHz
+  TIMSK2 = 1 << OCIE2A; // enable interrupt on output compare A match
 
   interrupts(); // start interrupts
 }
@@ -133,7 +133,7 @@ ISR(TIMER0_COMPA_vect) {
 }
 
 bool update_LED(const uint8_t which_LED, const bool on_off) {
-  if ((which_LED == REPLACE_FILTERS) || (which_LED == REPLACE_UV_BULB))
+  if (which_LED == REPLACE_FILTERS || which_LED == REPLACE_UV_BULB)
     EEPROM.write((int)which_LED, (uint8_t)on_off); // store state in non-volatile memory
   digitalWrite(which_LED, (uint8_t)on_off);
   return on_off;
@@ -146,13 +146,13 @@ float diff_pressure() {
 ISR(TIMER1_COMPA_vect) {
   if (digitalRead(RESET_FILTERS) == LOW)
     replace_filters_state = update_LED(REPLACE_FILTERS, false); // RESET_FILTERS button pressed
-  else if (!replace_filters_state && (diff_pressure() > max_diff_pressure))
+  else if ((!replace_filters_state) && (diff_pressure() > max_diff_pressure))
     replace_filters_state = update_LED(REPLACE_FILTERS, true);
 }
 
 float fluence_rate() {
-  return (voltage(UV_C_SENSOR) / (1.13e6 * 1.01)) / 42.0e-9; // UV-C fluence rate [mW/cm²]
-  // (fluence rate [mW/cm²]) = ((voltage [V]) / ((resistance [Ω]) * (1 + tolerance)) / (max photocurrent slope [A-cm²/mW])
+  return voltage(UV_C_SENSOR) / (1.13e6 * 1.01 * 42.0e-9); // UV-C fluence rate [mW/cm²]
+  // (fluence rate [mW/cm²]) = (voltage [V]) / ((resistance [Ω]) * (1 + tolerance) * (max photocurrent slope [A-cm²/mW]))
 }
 
 float new_avg_fluence(const float new_fluence_rate, float &prev_fluence_rate, const unsigned long new_t, unsigned long &prev_t) {
@@ -189,12 +189,12 @@ void speaker_control() {
 }
 
 float read_temperature() {
-  return ((voltage(TEMPERATURE_SENSOR) - 750.0e-3) / 10.0e-3 + 25.0) * (9.0 / 5.0) + 32.0; // temperature [°F]
-  // (temperature [°F]) = (((voltage [V]) - (cal voltage [V])) / (slope [V/°C]) + (cal temp [°C])) * (9 [°F] / 5 [°C]) + 32 [°F]
+  return ((voltage(TEMPERATURE_SENSOR) - 750.0e-3) / 10.0e-3 + 25.0) * 9.0 / 5.0 + 32.0; // temperature [°F]
+  // (temperature [°F]) = (((voltage [V]) - (cal voltage [V])) / (slope [V/°C]) + (cal temp [°C])) * 9 [°F] / 5 [°C] + 32 [°F]
 }
 
 void trickle_control() {
-  if ((read_temperature() < trickle_temperature) && !flow)
+  if ((!flow) && (read_temperature() < trickle_temperature))
     digitalWrite(TRICKLE_VALVE, HIGH); // open trickle valve
   else
     digitalWrite(TRICKLE_VALVE, LOW); // close trickle valve
@@ -202,10 +202,10 @@ void trickle_control() {
 }
 
 void evaluate_avg_fluence() {
-  if ((!replace_uv_bulb_state) && (avg_fluence < uv_bulb_warning))
+  if (!replace_uv_bulb_state && avg_fluence < uv_bulb_warning)
     replace_uv_bulb_state = update_LED(REPLACE_UV_BULB, true);
 
-  if ((!reozonate_state) && (avg_fluence < uv_bulb_unsafe))
+  if (!reozonate_state && avg_fluence < uv_bulb_unsafe)
     reozonate_state = update_LED(REOZONATE, true);
 }
 
