@@ -124,8 +124,8 @@ float voltage(const int input_pin) {
 }
 
 float pressure() {
-  static const float pt_slope = (cal_pt[HI_PSI] - cal_pt[LO_PSI]) / (cal_pt[HI_VOLTAGE] - cal_pt[LO_VOLTAGE]);
-  return (voltage(PRESSURE_TRANSMITTER) - cal_pt[LO_VOLTAGE]) * pt_slope; // pressure [psig]
+  static const float slope = (cal_pt[HI_PSI] - cal_pt[LO_PSI]) / (cal_pt[HI_VOLTAGE] - cal_pt[LO_VOLTAGE]);
+  return (voltage(PRESSURE_TRANSMITTER) - cal_pt[LO_VOLTAGE]) * slope + cal_pt[LO_PSI]; // pressure [psig]
 }
 
 ISR(TIMER0_COMPA_vect) {
@@ -141,8 +141,8 @@ bool update_LED(const uint8_t which_LED, const bool on_off) {
 }
 
 float diff_pressure() {
-  static const float dpt_slope = (cal_dpt[HI_PSI] - cal_dpt[LO_PSI]) / (cal_dpt[HI_VOLTAGE] - cal_dpt[LO_VOLTAGE]);
-  return (voltage(DIFF_PRESSURE_TRANSMITTER) - cal_dpt[LO_VOLTAGE]) * dpt_slope; // differential pressure [psiΔ]
+  static const float slope = (cal_dpt[HI_PSI] - cal_dpt[LO_PSI]) / (cal_dpt[HI_VOLTAGE] - cal_dpt[LO_VOLTAGE]);
+  return (voltage(DIFF_PRESSURE_TRANSMITTER) - cal_dpt[LO_VOLTAGE]) * slope + cal_dpt[LO_PSI]; // differential pressure [psiΔ]
 }
 
 ISR(TIMER1_COMPA_vect) {
