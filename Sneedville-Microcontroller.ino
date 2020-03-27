@@ -1,6 +1,6 @@
 /*
   created 20 Mar 2020 by Casey Williams
-  last modified 26 Mar 2020 by Casey Williams
+  last modified 27 Mar 2020 by Casey Williams
 
   Program for the Ruggeduino in the system-monitoring design for the Cedar Grove Baptist Church clean water project in
   Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for the 2020
@@ -50,8 +50,8 @@ enum {
   // pressure transmitter and differential pressure transmitter calibration array names:
   HI_PSI = 0, // high pressure [psig] or differential pressure [psiΔ]
   LO_PSI = 1, // low pressure [psig] or differential pressure [psiΔ]
-  HI_V = 2, // voltage [V] at HI_PSI
-  LO_V = 3 // voltage [V] at LO_PSI
+  HI_VOLTAGE = 2, // voltage [V] at HI_PSI
+  LO_VOLTAGE = 3 // voltage [V] at LO_PSI
 };
 
 const float cal_dpt[] = {5.0, 0.0, 2.381187, 1.01841}; // differential pressure transmitter calibration values
@@ -124,7 +124,8 @@ float voltage(const int input_pin) {
 }
 
 float pressure() {
-  return (voltage(PRESSURE_TRANSMITTER) - cal_pt[LO_V]) * (HI_PSI - LO_PSI) / (HI_V - LO_V); // pressure [psig]
+  static const float pt_slope = (cal_pt[HI_PSI] - cal_pt[LO_PSI]) / (cal_pt[HI_VOLTAGE] - cal_pt[LO_VOLTAGE]);
+  return (voltage(PRESSURE_TRANSMITTER) - cal_pt[LO_VOLTAGE]) * pt_slope; // pressure [psig]
 }
 
 ISR(TIMER0_COMPA_vect) {
@@ -140,7 +141,8 @@ bool update_LED(const uint8_t which_LED, const bool on_off) {
 }
 
 float diff_pressure() {
-  return (voltage(DIFF_PRESSURE_TRANSMITTER) - cal_pt[LO_V]) * (HI_PSI - LO_PSI) / (HI_V - LO_V); // differential pressure [psiΔ]
+  static const float dpt_slope = (cal_dpt[HI_PSI] - cal_dpt[LO_PSI]) / (cal_dpt[HI_VOLTAGE] - cal_dpt[LO_VOLTAGE]);
+  return (voltage(DIFF_PRESSURE_TRANSMITTER) - cal_dpt[LO_VOLTAGE]) * dpt_slope; // differential pressure [psiΔ]
 }
 
 ISR(TIMER1_COMPA_vect) {
