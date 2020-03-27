@@ -28,22 +28,4 @@
       (FullPartName "MLED81.Normal")
       (LibraryName ".\LIBRARY\OPTO.OLB")
       (DeviceIndex "0"))
-  (GlobalState
-    (FileView
-      (Path "Design Resources")
-      (Path "Design Resources"
-         ".\electrical-overview_orcad_project.DSN")
-      (Path "Design Resources"
-         ".\electrical-overview_orcad_project.DSN"
-         "SCHEMATIC1")
-      (Path "Design Resources"
-         ".\electrical-overview_orcad_project.DSN"
-         "Design Cache")
-      (Path "PSpice Resources"))
-    (HierarchyView)
-    (Doc
-      (Type "COrCapturePMDoc")
-      (Frame
-        (Placement "44 2 3 -1 -1 -8 -30 0 200 0 553"))
-      (Tab 0)))
-  (LastUsedLibraryBrowseDirectory ".\LIBRARY")
+    (LastUsedLibraryBrowseDirectory ".\LIBRARY")))
