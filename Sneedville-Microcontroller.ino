@@ -1,6 +1,6 @@
 /*
   created 20 Mar 2020 by Casey Williams
-  last modified 27 Mar 2020 by Casey Williams
+  last modified 28 Mar 2020 by Casey Williams
 
   Program for the Ruggeduino in the system-monitoring design for the Cedar Grove Baptist Church clean water project in
   Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for the 2020
@@ -14,11 +14,12 @@
   A brief overview of the structure of this code and how it is used in the project:
   - the REOZONATE LED and speaker alert are triggered for all reset sources (power-on, external, watchdog system, and brown-out)
   - whenever reset from a safe (uncontaminated) system state, clear the LED/speaker alert with the RESET_REOZONATE button
-  - calibration points and decision thresholds are grouped together as global constants
+  - calibration points and decision thresholds, the most likely values that need to be changed, are grouped as global constants
   - UV-C fluence rate [mW/cm²], pressure [psig], and differential pressure [psiΔ] readings are handled by timer-based interrupts
   - for these sensors/transmitters, interrupt frequencies were chosen to be > 2.205 / (response time from datasheet [s])
   - the interrupts also handle the LED outputs and button/switch inputs
   - system flow, UV-C fluence [mW-s/cm²], temperature, and speaker output are determined once per ~49 seconds by the main loop
+  - general code order: globals -> setup/loop -> interrupts -> sensor/transmitter read functions -> output decision functions
 
   For more information on the project, see the 'README.md' file in the Github repository.
 */
@@ -118,14 +119,18 @@ void setup() {
   interrupts(); // start interrupts
 }
 
-float voltage(const int input_pin) {
-  return analogRead(input_pin) / 1023.0 * 5.0; // convert 10-bit ADC value to voltage [V]
-  // (voltage [V]) = (analog reading) / (max analog reading) * (analog reference voltage [V])
-}
+void loop() {
+  static bool skip_first_evaluation = true;
 
-float pressure() {
-  static const float slope = (cal_pt[HI_PSI] - cal_pt[LO_PSI]) / (cal_pt[HI_VOLTAGE] - cal_pt[LO_VOLTAGE]);
-  return (voltage(PRESSURE_TRANSMITTER) - cal_pt[LO_VOLTAGE]) * slope + cal_pt[LO_PSI]; // pressure [psig]
+  speaker_control();
+  delay(49000);
+  trickle_control();
+
+  if (!skip_first_evaluation)
+    evaluate_avg_fluence();
+  else
+    skip_first_evaluation = false; // skip first evaluation of average UV-C fluence to allow UV bulb to warm up
+  fluence_it = 0; // reset UV-C fluence iteration count for next 49-second interval
 }
 
 ISR(TIMER0_COMPA_vect) {
@@ -133,37 +138,11 @@ ISR(TIMER0_COMPA_vect) {
     flow = true; // flow is reset to false every 49-second interval
 }
 
-bool update_LED(const uint8_t which_LED, const bool on_off) {
-  if (which_LED == REPLACE_FILTERS || which_LED == REPLACE_UV_BULB)
-    EEPROM.write((int)which_LED, (uint8_t)on_off); // store state in non-volatile memory
-  digitalWrite(which_LED, (uint8_t)on_off);
-  return on_off;
-}
-
-float diff_pressure() {
-  static const float slope = (cal_dpt[HI_PSI] - cal_dpt[LO_PSI]) / (cal_dpt[HI_VOLTAGE] - cal_dpt[LO_VOLTAGE]);
-  return (voltage(DIFF_PRESSURE_TRANSMITTER) - cal_dpt[LO_VOLTAGE]) * slope + cal_dpt[LO_PSI]; // differential pressure [psiΔ]
-}
-
 ISR(TIMER1_COMPA_vect) {
   if (digitalRead(RESET_FILTERS) == LOW)
     replace_filters_state = update_LED(REPLACE_FILTERS, false); // RESET_FILTERS button pressed
   else if ((!replace_filters_state) && (diff_pressure() > max_diff_pressure))
     replace_filters_state = update_LED(REPLACE_FILTERS, true);
-}
-
-float fluence_rate() {
-  return voltage(UV_C_SENSOR) / (1.13e6 * 1.01 * 42.0e-9); // UV-C fluence rate [mW/cm²]
-  // (fluence rate [mW/cm²]) = (voltage [V]) / ((resistance [Ω]) * (1 + tolerance) * (max photocurrent slope [A-cm²/mW]))
-}
-
-float new_avg_fluence(const float new_fluence_rate, float &prev_fluence_rate, const unsigned long new_t, unsigned long &prev_t) {
-  // estimate area under fluence-rate curve for most recent time step:
-  float new_fluence = (new_fluence_rate + prev_fluence_rate) / 2.0 * (new_t - prev_t);
-
-  prev_fluence_rate = new_fluence_rate;
-  prev_t = new_t;
-  return (avg_fluence * (fluence_it - 1) + new_fluence) / fluence_it; // fluence [mW-s/cm²];
 }
 
 ISR(TIMER2_COMPA_vect) {
@@ -183,24 +162,38 @@ ISR(TIMER2_COMPA_vect) {
     reozonate_state = update_LED(REOZONATE, false); // RESET_REOZONATE button pressed
 }
 
-void speaker_control() {
-  if ((digitalRead(MUTE) == HIGH) && (reozonate_state || replace_filters_state || replace_uv_bulb_state))
-    digitalWrite(SPEAKER, HIGH); // speaker MUTE switch is off and at least one LED is on
-  else
-    digitalWrite(SPEAKER, LOW);
+float voltage(const int input_pin) {
+  return analogRead(input_pin) / 1023.0 * 5.0; // convert 10-bit ADC value to voltage [V]
+  // (voltage [V]) = (analog reading) / (max analog reading) * (analog reference voltage [V])
 }
 
-float read_temperature() {
+float pressure() {
+  static const float slope = (cal_pt[HI_PSI] - cal_pt[LO_PSI]) / (cal_pt[HI_VOLTAGE] - cal_pt[LO_VOLTAGE]);
+  return (voltage(PRESSURE_TRANSMITTER) - cal_pt[LO_VOLTAGE]) * slope + cal_pt[LO_PSI]; // pressure [psig]
+}
+
+float diff_pressure() {
+  static const float slope = (cal_dpt[HI_PSI] - cal_dpt[LO_PSI]) / (cal_dpt[HI_VOLTAGE] - cal_dpt[LO_VOLTAGE]);
+  return (voltage(DIFF_PRESSURE_TRANSMITTER) - cal_dpt[LO_VOLTAGE]) * slope + cal_dpt[LO_PSI]; // differential pressure [psiΔ]
+}
+
+float temperature() {
   return ((voltage(TEMPERATURE_SENSOR) - 750.0e-3) / 10.0e-3 + 25.0) * 9.0 / 5.0 + 32.0; // temperature [°F]
   // (temperature [°F]) = (((voltage [V]) - (cal voltage [V])) / (slope [V/°C]) + (cal temp [°C])) * 9 [°F] / 5 [°C] + 32 [°F]
 }
 
-void trickle_control() {
-  if ((!flow) && (read_temperature() < trickle_temperature))
-    digitalWrite(TRICKLE_VALVE, HIGH); // open trickle valve
-  else
-    digitalWrite(TRICKLE_VALVE, LOW); // close trickle valve
-  flow = false; // reset flow detection for next 49-second interval
+float fluence_rate() {
+  return voltage(UV_C_SENSOR) / (1.13e6 * 1.01 * 42.0e-9); // UV-C fluence rate [mW/cm²]
+  // (fluence rate [mW/cm²]) = (voltage [V]) / ((resistance [Ω]) * (1 + tolerance) * (max photocurrent slope [A-cm²/mW]))
+}
+
+float new_avg_fluence(const float new_fluence_rate, float &prev_fluence_rate, const unsigned long new_t, unsigned long &prev_t) {
+  // estimate area under fluence-rate curve for most recent time step:
+  float new_fluence = (new_fluence_rate + prev_fluence_rate) / 2.0 * (new_t - prev_t);
+
+  prev_fluence_rate = new_fluence_rate;
+  prev_t = new_t;
+  return (avg_fluence * (fluence_it - 1) + new_fluence) / fluence_it; // fluence [mW-s/cm²];
 }
 
 void evaluate_avg_fluence() {
@@ -211,16 +204,24 @@ void evaluate_avg_fluence() {
     reozonate_state = update_LED(REOZONATE, true);
 }
 
-void loop() {
-  static bool skip_first_evaluation = true;
+bool update_LED(const uint8_t which_LED, const bool on_off) {
+  if (which_LED == REPLACE_FILTERS || which_LED == REPLACE_UV_BULB)
+    EEPROM.write((int)which_LED, (uint8_t)on_off); // store state in non-volatile memory
+  digitalWrite(which_LED, (uint8_t)on_off);
+  return on_off;
+}
 
-  speaker_control();
-  delay(49000);
-  trickle_control();
-
-  if (!skip_first_evaluation)
-    evaluate_avg_fluence();
+void speaker_control() {
+  if ((digitalRead(MUTE) == HIGH) && (reozonate_state || replace_filters_state || replace_uv_bulb_state))
+    digitalWrite(SPEAKER, HIGH); // speaker MUTE switch is off and at least one LED is on
   else
-    skip_first_evaluation = false; // skip first evaluation of average UV-C fluence to allow UV bulb to warm up
-  fluence_it = 0; // reset UV-C fluence iteration count for next 49-second interval
+    digitalWrite(SPEAKER, LOW);
+}
+
+void trickle_control() {
+  if ((!flow) && (temperature() < trickle_temperature))
+    digitalWrite(TRICKLE_VALVE, HIGH); // open trickle valve
+  else
+    digitalWrite(TRICKLE_VALVE, LOW); // close trickle valve
+  flow = false; // reset flow detection for next 49-second interval
 }
