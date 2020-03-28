@@ -39,7 +39,7 @@
   - 'electrical-overview.png' is a schematic that gives an overview of all electrical connections for the Cedar Grove project  
   - The 'electrical-overview_orcad_project' folder contains an OrCAD Capture project that can be used to update the schematic  
   - 'UV-C_sensor_circuit.png' identifies the pin numbers and shows the surface-mount component layout for the Adafruit 1212  
-  - 'UV-C_sensor_circuit_schematic.png' shows both the external connections and suface-mount connections for the Adafruint 1212  
+  - 'UV-C_sensor_circuit_schematic.png' shows the external connections and suface-mount connections for the Adafruit 1212  
   <br>
 
 *********************************************************************************************************************************
