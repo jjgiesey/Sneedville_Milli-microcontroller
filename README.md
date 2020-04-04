@@ -36,6 +36,7 @@
 
   - All code is in the C programming language and is contained within the single file 'Sneedville-Microcontroller.ino', located
     in the same directory as this README  
+  - 'electrical_box_layout.png' is the electrical box layout and can be updated with the CAD file 'electrical_box_layout.dgn'  
   - 'electrical-overview.png' is a schematic that gives an overview of all electrical connections for the Cedar Grove project  
   - The 'electrical-overview_orcad_project' folder contains an OrCAD Capture project that can be used to update the schematic  
   - 'UV-C_sensor_circuit.png' identifies the pin numbers and shows the surface-mount component layout for the Adafruit 1212  
