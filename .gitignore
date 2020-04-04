@@ -1,2 +1,3 @@
-# ignore local OrCAD project backups
+# ignore local OrCAD and Microstation project backups
 *.dbk
+*.bak

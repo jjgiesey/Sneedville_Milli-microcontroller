@@ -1,10 +1,15 @@
-## Sneedville-Microcontroller  
+## Milli-microcontroller  
 
-  Program for the Ruggeduino in the system-monitoring design for the Cedar Grove Baptist Church clean water project in
-  Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for the 2020
-  spring semester at the following GitHub repository:  
+  Program for the Ruggeduino in the system-monitoring design originally developed for the Cedar Grove Baptist Church clean water
+  project in Sneedville. The 'master' branch now contains a simplified version that lacks the freeze protection features that are
+  specialized to the Sneedville implementation. The code and other relevant files will be updated and maintained as part of a
+  senior design project for the 2020 spring semester at the following GitHub repository:  
   <br>
-  https://github.com/Milligan-Engineering/Sneedville-Microcontroller  
+  https://github.com/Milligan-Engineering/Milli-microcontroller  
+  <br>
+  The Sneedville specialization of this project is now maintained as its own fork on GitHub:  
+  <br>
+  https://github.com/Milligan-Engineering/Sneedville_Milli-microcontroller  
   <br>
   Should the project require maintenance/changes/improvements/additions in the future, this repository should serve as a
   reference for other contributors.  
@@ -34,9 +39,9 @@
 ###### Repository structure
 *********************************************************************************************************************************
 
-  - All code is in the C programming language and is contained within the single file 'Sneedville-Microcontroller.ino', located
-    in the same directory as this README  
-  - 'electrical_box_layout.png' is the electrical box layout and can be updated with the CAD file 'electrical_box_layout.dgn'  
+  - All code is in the C programming language and is contained within the single file 'Milli-microcontroller.ino', located in the
+    same directory as this README  
+  - 'electrical_box_layout.png' is the electrical box layout and can be updated with the CAD file 'electrical_box_layout.dwg'  
   - 'electrical-overview.png' is a schematic that gives an overview of all electrical connections for the Cedar Grove project  
   - The 'electrical-overview_orcad_project' folder contains an OrCAD Capture project that can be used to update the schematic  
   - 'UV-C_sensor_circuit.png' identifies the pin numbers and shows the surface-mount component layout for the Adafruit 1212  

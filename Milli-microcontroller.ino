@@ -1,12 +1,17 @@
 /*
   created 20 Mar 2020 by Casey Williams
-  last modified 28 Mar 2020 by Casey Williams
+  last modified 04 Apr 2020 by Casey Williams
 
-  Program for the Ruggeduino in the system-monitoring design for the Cedar Grove Baptist Church clean water project in
-  Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for the 2020
-  spring semester at the following GitHub repository:
+  Program for the Ruggeduino in the system-monitoring design originally developed for the Cedar Grove Baptist Church clean water
+  project in Sneedville. The 'master' branch now contains a simplified version that lacks the freeze protection features that are
+  specialized to the Sneedville implementation. The code and other relevant files will be updated and maintained as part of a
+  senior design project for the 2020 spring semester at the following GitHub repository:
 
-  https://github.com/Milligan-Engineering/Sneedville-Microcontroller
+  https://github.com/Milligan-Engineering/Milli-microcontroller
+
+  The Sneedville specialization of this project is now maintained as its own fork on GitHub:
+
+  https://github.com/Milligan-Engineering/Sneedville_Milli-microcontroller
 
   Should the project require maintenance/changes/improvements/additions in the future, this repository should serve as a
   reference for other contributors.
