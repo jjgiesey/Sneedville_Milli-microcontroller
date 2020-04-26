@@ -1,29 +1,30 @@
 /*
   created 20 Mar 2020 by Casey Williams
-  last modified 04 Apr 2020 by Casey Williams
+  last modified 26 Apr 2020 by Casey Williams
 
   Program for the Ruggeduino in the system-monitoring design originally developed for the Cedar Grove Baptist Church clean water
-  project in Sneedville. The 'master' branch now contains a simplified version that lacks the freeze protection features that are
-  specialized to the Sneedville implementation. The code and other relevant files will be updated and maintained as part of a
-  senior design project for the 2020 spring semester at the following GitHub repository:
+  project in Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for
+  the 2020 spring semester at the following GitHub repository:
+
+  https://github.com/jjgiesey/Sneedville_Milli-microcontroller
+
+  The generic version of the project that lacks the freeze protection features that are specialized to the Sneedville
+  implementation is maintained in a different GitHub repository:
 
   https://github.com/Milligan-Engineering/Milli-microcontroller
-
-  The Sneedville specialization of this project is now maintained as its own fork on GitHub:
-
-  https://github.com/Milligan-Engineering/Sneedville_Milli-microcontroller
 
   Should the project require maintenance/changes/improvements/additions in the future, this repository should serve as a
   reference for other contributors.
 
   A brief overview of the structure of this code and how it is used in the project:
-  - the REOZONATE LED and speaker alert are triggered for all reset sources (power-on, external, watchdog system, and brown-out)
+  - the REOZONATE LED is triggered for all reset sources (power-on, external, watchdog system, and brown-out)
   - whenever reset from a safe (uncontaminated) system state, clear the LED/speaker alert with the RESET_REOZONATE button
   - calibration points and decision thresholds, the most likely values that need to be changed, are grouped as global constants
   - UV-C fluence rate [mW/cm²], pressure [psig], and differential pressure [psiΔ] readings are handled by timer-based interrupts
   - for these sensors/transmitters, interrupt frequencies were chosen to be > 2.205 / (response time from datasheet [s])
   - the interrupts also handle the LED outputs and button/switch inputs
-  - system flow, UV-C fluence [mW-s/cm²], temperature, and speaker output are determined once per ~49 seconds by the main loop
+  - the SOLENOID_POWER, HEATER_POWER, and UV_POWER switches correspond to being on when HIGH and off when LOW
+  - system flow, UV-C fluence [mW-s/cm²], and temperatures are determined once per ~49 seconds by the main loop
   - general code order: globals -> setup/loop -> interrupts -> sensor/transmitter read functions -> output decision functions
 
   For more information on the project, see the 'README.md' file in the Github repository.
@@ -33,25 +34,27 @@
 
 enum {
   // digital pin input names:
-  MUTE = 2,
-  RESET_REOZONATE = 3,
-  RESET_FILTERS = 6,
-  RESET_UV_BULB = 9,
+  RESET_REOZONATE = 1,
+  RESET_FILTERS = 2,
+  RESET_UV_BULB = 3,
+  SOLENOID_POWER = 7,
+  HEATER_POWER = 8,
+  UV_POWER = 9,
 
   // digital pin output names:
-  SPEAKER = 1,
   REOZONATE = 4,
-  REPLACE_FILTERS = 7,
-  REPLACE_UV_BULB = 10,
-  SPARE_RELAY_1 = 11, // not currently used
-  SPARE_RELAY_2 = 12, // not currently used
-  TRICKLE_VALVE = 13,
+  REPLACE_FILTERS = 5,
+  REPLACE_UV_BULB = 6,
+  UV = 10,
+  SOLENOID = 12,
+  HEATER = 13,
 
   // analog pin input names:
   UV_C_SENSOR = A0,
-  PRESSURE_TRANSMITTER = A1,
-  TEMPERATURE_SENSOR = A2,
-  DIFF_PRESSURE_TRANSMITTER = A3,
+  DIFF_PRESSURE_TRANSMITTER = A1,
+  PRESSURE_TRANSMITTER = A2,
+  INSIDE_TEMPERATURE_SENSOR = A3,
+  OUTSIDE_TEMPERATURE_SENSOR = A4,
 
   // pressure transmitter and differential pressure transmitter calibration array names:
   HI_PSI = 0, // high pressure [psig] or differential pressure [psiΔ]
@@ -62,18 +65,22 @@ enum {
 
 const float cal_dpt[] = {5.0, 0.0, 2.381187, 1.01841}; // differential pressure transmitter calibration values
 const float cal_pt[] = {65.0, 0.0, 4.61, 0.58}; // pressure transmitter calibration values
+const float heater_temperature = 35.0; // internal temperature [°F] under which the heater is to be on
 const float max_diff_pressure = 7.0; // differential pressure [psid] over which the REPLACE_FILTERS LED is triggered
-const float max_pressure = 20.0; // pressure [psig] threshold for determining whether system is flowing
+const float max_pressure = 19.0; // pressure [psig] threshold for determining whether system is flowing
 const float trickle_temperature = 20.0; // external temperature [°F] under which the trickle valve is to open
 const float uv_bulb_unsafe = 30.0; // UV-C fluence [mW-s/cm²] under which the REOZONATE LED is triggered
 const float uv_bulb_warning = 34.5; // UV-C fluence [mW-s/cm²] under which the REPLACE_UV_BULB LED is triggered
 
-bool flow = false; // true when flow is detected
+bool flow = false; // true when flow is detectedreozonate_state
+bool heater_state = false;
 bool reozonate_state = true; // REOZONATE LED turns on after any reset
 bool replace_filters_state = false;
 bool replace_uv_bulb_state = false;
+bool solenoid_state = false;
+bool uv_state = false;
 float avg_fluence = 0.0; // average UV-C fluence [mW-s/cm²] for each 49-second interval
-long fluence_it = -1; // number of UV-C fluence iterations averaged for each 49-second interval
+long fluence_it = -1; // incremental number of UV-C fluence iterations averaged for each 49-second interval
 
 void setup() {
   noInterrupts(); // stop interrupts
@@ -85,20 +92,25 @@ void setup() {
   pinMode(RESET_REOZONATE, INPUT_PULLUP);
   pinMode(RESET_FILTERS, INPUT_PULLUP);
   pinMode(RESET_UV_BULB, INPUT_PULLUP);
+  pinMode(SOLENOID_POWER, INPUT_PULLUP);
+  pinMode(HEATER_POWER, INPUT_PULLUP);
+  pinMode(UV_POWER, INPUT_PULLUP);
 
   // initialize digital pin outputs:
-  pinMode(SPEAKER, OUTPUT);
   pinMode(REOZONATE, OUTPUT);
   pinMode(REPLACE_FILTERS, OUTPUT);
   pinMode(REPLACE_UV_BULB, OUTPUT);
-  pinMode(TRICKLE_VALVE, OUTPUT);
+  pinMode(UV, OUTPUT);
+  pinMode(SOLENOID, OUTPUT);
+  pinMode(HEATER, OUTPUT);
 
   // set digital pin outputs inital states:
-  digitalWrite(SPEAKER, LOW);
   digitalWrite(REOZONATE, HIGH);
   digitalWrite(REPLACE_FILTERS, (uint8_t)replace_filters_state);
   digitalWrite(REPLACE_UV_BULB, (uint8_t)replace_uv_bulb_state);
-  digitalWrite(TRICKLE_VALVE, LOW);
+  digitalWrite(UV, LOW);
+  digitalWrite(SOLENOID, LOW);
+  digitalWrite(HEATER, LOW);
 
   // set TIMER0 interrupt at 1.1 kHz for reading pressure transmitter:
   TCCR0A = 1 << WGM01; // set clear timer on compare mode
@@ -127,14 +139,15 @@ void setup() {
 void loop() {
   static bool skip_first_evaluation = true;
 
-  speaker_control();
   delay(49000);
-  trickle_control();
 
   if (!skip_first_evaluation)
     evaluate_avg_fluence();
   else
     skip_first_evaluation = false; // skip first evaluation of average UV-C fluence to allow UV bulb to warm up
+  heater_control();
+  trickle_control();
+  flow = false; // reset flow detection for next 49-second interval
   fluence_it = 0; // reset UV-C fluence iteration count for next 49-second interval
 }
 
@@ -145,9 +158,9 @@ ISR(TIMER0_COMPA_vect) {
 
 ISR(TIMER1_COMPA_vect) {
   if (digitalRead(RESET_FILTERS) == LOW)
-    replace_filters_state = update_LED(REPLACE_FILTERS, false); // RESET_FILTERS button pressed
+    replace_filters_state = update_output(REPLACE_FILTERS, false); // RESET_FILTERS button pressed
   else if ((!replace_filters_state) && (diff_pressure() > max_diff_pressure))
-    replace_filters_state = update_LED(REPLACE_FILTERS, true);
+    replace_filters_state = update_output(REPLACE_FILTERS, true);
 }
 
 ISR(TIMER2_COMPA_vect) {
@@ -157,14 +170,19 @@ ISR(TIMER2_COMPA_vect) {
   if (fluence_it > 0)
     avg_fluence = new_avg_fluence(fluence_rate(), prev_fluence_rate, micros(), prev_t);
 
-  if (digitalRead(MUTE) == LOW)
-    digitalWrite(SPEAKER, LOW); // speaker MUTE switch on
+  if (digitalRead(RESET_REOZONATE) == LOW)
+    reozonate_state = update_output(REOZONATE, false); // RESET_REOZONATE button pressed
 
   if (digitalRead(RESET_UV_BULB) == LOW)
-    replace_uv_bulb_state = update_LED(REPLACE_UV_BULB, false); // RESET_UV_BULB button pressed
+    replace_uv_bulb_state = update_output(REPLACE_UV_BULB, false); // RESET_UV_BULB button pressed
 
-  if (digitalRead(RESET_REOZONATE) == LOW)
-    reozonate_state = update_LED(REOZONATE, false); // RESET_REOZONATE button pressed
+  uv_state = update_output(UV, (bool)digitalRead(UV_POWER)); // match UV power state to UV_POWER switch input state
+
+  if (digitalRead(SOLENOID_POWER) == LOW && solenoid_state)
+    solenoid_state = update_output(SOLENOID, false); // override solenoid power state to off
+
+  if (digitalRead(HEATER_POWER) == LOW && heater_state)
+    heater_state = update_output(HEATER, false); // override heater power state to off
 }
 
 float voltage(const int input_pin) {
@@ -172,18 +190,23 @@ float voltage(const int input_pin) {
   // (voltage [V]) = (analog reading) / (max analog reading) * (analog reference voltage [V])
 }
 
-float pressure() {
-  static const float slope = (cal_pt[HI_PSI] - cal_pt[LO_PSI]) / (cal_pt[HI_VOLTAGE] - cal_pt[LO_VOLTAGE]);
-  return (voltage(PRESSURE_TRANSMITTER) - cal_pt[LO_VOLTAGE]) * slope + cal_pt[LO_PSI]; // pressure [psig]
-}
-
 float diff_pressure() {
   static const float slope = (cal_dpt[HI_PSI] - cal_dpt[LO_PSI]) / (cal_dpt[HI_VOLTAGE] - cal_dpt[LO_VOLTAGE]);
   return (voltage(DIFF_PRESSURE_TRANSMITTER) - cal_dpt[LO_VOLTAGE]) * slope + cal_dpt[LO_PSI]; // differential pressure [psiΔ]
 }
 
-float temperature() {
-  return ((voltage(TEMPERATURE_SENSOR) - 750.0e-3) / 10.0e-3 + 25.0) * 9.0 / 5.0 + 32.0; // temperature [°F]
+float pressure() {
+  static const float slope = (cal_pt[HI_PSI] - cal_pt[LO_PSI]) / (cal_pt[HI_VOLTAGE] - cal_pt[LO_VOLTAGE]);
+  return (voltage(PRESSURE_TRANSMITTER) - cal_pt[LO_VOLTAGE]) * slope + cal_pt[LO_PSI]; // pressure [psig]
+}
+
+float inside_temperature() {
+  return ((voltage(INSIDE_TEMPERATURE_SENSOR) - 750.0e-3) / 10.0e-3 + 25.0) * 9.0 / 5.0 + 32.0; // temperature [°F]
+  // (temperature [°F]) = (((voltage [V]) - (cal voltage [V])) / (slope [V/°C]) + (cal temp [°C])) * 9 [°F] / 5 [°C] + 32 [°F]
+}
+
+float outside_temperature() {
+  return ((voltage(OUTSIDE_TEMPERATURE_SENSOR) - 750.0e-3) / 10.0e-3 + 25.0) * 9.0 / 5.0 + 32.0; // temperature [°F]
   // (temperature [°F]) = (((voltage [V]) - (cal voltage [V])) / (slope [V/°C]) + (cal temp [°C])) * 9 [°F] / 5 [°C] + 32 [°F]
 }
 
@@ -201,32 +224,31 @@ float new_avg_fluence(const float new_fluence_rate, float &prev_fluence_rate, co
   return (avg_fluence * (fluence_it - 1) + new_fluence) / fluence_it; // fluence [mW-s/cm²];
 }
 
-void evaluate_avg_fluence() {
-  if (!replace_uv_bulb_state && avg_fluence < uv_bulb_warning)
-    replace_uv_bulb_state = update_LED(REPLACE_UV_BULB, true);
-
-  if (!reozonate_state && avg_fluence < uv_bulb_unsafe)
-    reozonate_state = update_LED(REOZONATE, true);
-}
-
-bool update_LED(const uint8_t which_LED, const bool on_off) {
-  if (which_LED == REPLACE_FILTERS || which_LED == REPLACE_UV_BULB)
-    EEPROM.write((int)which_LED, (uint8_t)on_off); // store state in non-volatile memory
-  digitalWrite(which_LED, (uint8_t)on_off);
+bool update_output(const uint8_t which_output, const bool on_off) {
+  if (which_output == REPLACE_FILTERS || which_output == REPLACE_UV_BULB)
+    EEPROM.write((int)which_output, (uint8_t)on_off); // store state in non-volatile memory
+  digitalWrite(which_output, (uint8_t)on_off);
   return on_off;
 }
 
-void speaker_control() {
-  if ((digitalRead(MUTE) == HIGH) && (reozonate_state || replace_filters_state || replace_uv_bulb_state))
-    digitalWrite(SPEAKER, HIGH); // speaker MUTE switch is off and at least one LED is on
+void evaluate_avg_fluence() {
+  if (!replace_uv_bulb_state && avg_fluence < uv_bulb_warning)
+    replace_uv_bulb_state = update_output(REPLACE_UV_BULB, true);
+
+  if (!reozonate_state && ((flow && !uv_state) || avg_fluence < uv_bulb_unsafe))
+    reozonate_state = update_output(REOZONATE, true);
+}
+
+void heater_control() {
+  if ((digitalRead(HEATER_POWER) == HIGH) && (inside_temperature() < heater_temperature))
+    heater_state = update_output(HEATER, true); // turn heater on
   else
-    digitalWrite(SPEAKER, LOW);
+    heater_state = update_output(HEATER, false); // turn heater off
 }
 
 void trickle_control() {
-  if ((!flow) && (temperature() < trickle_temperature))
-    digitalWrite(TRICKLE_VALVE, HIGH); // open trickle valve
+  if ((digitalRead(SOLENOID_POWER) == HIGH) && (!flow) && (outside_temperature() < trickle_temperature))
+    solenoid_state = update_output(SOLENOID, true); // open trickle valve
   else
-    digitalWrite(TRICKLE_VALVE, LOW); // close trickle valve
-  flow = false; // reset flow detection for next 49-second interval
+    solenoid_state = update_output(SOLENOID, false); // close trickle valve
 }

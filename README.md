@@ -1,15 +1,15 @@
-## Milli-microcontroller  
+## Sneedville_Milli-microcontroller  
 
   Program for the Ruggeduino in the system-monitoring design originally developed for the Cedar Grove Baptist Church clean water
-  project in Sneedville. The 'master' branch now contains a simplified version that lacks the freeze protection features that are
-  specialized to the Sneedville implementation. The code and other relevant files will be updated and maintained as part of a
-  senior design project for the 2020 spring semester at the following GitHub repository:  
+  project in Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for
+  the 2020 spring semester at the following GitHub repository:  
   <br>
-  https://github.com/Milligan-Engineering/Milli-microcontroller  
+  https://github.com/jjgiesey/Sneedville_Milli-microcontroller  
   <br>
-  The Sneedville specialization of this project is now maintained as its own fork on GitHub:  
+  The generic version of the project that lacks the freeze protection features that are specialized to the Sneedville
+  implementation is maintained in a different GitHub repository:  
   <br>
-  https://github.com/Milligan-Engineering/Sneedville_Milli-microcontroller  
+  https://github.com/Milligan-Engineering/Milli-microcontroller 
   <br>
   Should the project require maintenance/changes/improvements/additions in the future, this repository should serve as a
   reference for other contributors.  
@@ -39,8 +39,8 @@
 ###### Repository structure
 *********************************************************************************************************************************
 
-  - All code is in the C programming language and is contained within the single file 'Milli-microcontroller.ino', located in the
-    same directory as this README  
+  - All code is in the C programming language and is contained within the single file 'SneedvilleMilli-microcontroller.ino',
+    located in thesame directory as this README  
   - 'electrical_box_layout.png' is the electrical box layout and can be updated with the CAD file 'electrical_box_layout.dwg'  
   - 'electrical-overview.png' is a schematic that gives an overview of all electrical connections for the Cedar Grove project  
   - The 'electrical-overview_orcad_project' folder contains an OrCAD Capture project that can be used to update the schematic  
@@ -54,20 +54,18 @@
 
   - Ruggeduino-SE ST microcontroller
       - https://www.rugged-circuits.com/microcontroller-boards/ruggeduino-se-special-edition-mpdes
-  - ASI NDB2-63C20-1 circuit breaker
-      - https://www.asi-ez.com/member/~NDB2-63C20-1.asp
-  - Mean Well MDR-20-24 power supply (+24 VDC)
+  - LPMNSD DZ47-63 C10 circuit breaker
+      - http://www.lpmnsd.com/en/Product/product_show.asp?did=1556
+  - Mean Well MDR-20-24 power supply [+24 VDC]
       - https://www.meanwell-web.com/en-gb/ac-dc-industrial-din-rail-power-supply-output-mdr--20--24
-  - Mean Well MDR-20-5 power supply (-5 VDC)
+  - Mean Well MDR-20-5 power supply [-5 VDC]
       - https://www.meanwell-web.com/en-gb/ac-dc-industrial-din-rail-power-supply-output-5vdc-mdr--20--5
   - PurTest PT-12 ultraviolet water disinfection system
       - https://purtest.com/wp-content/uploads/sites/7409/2018/05/PurTest-PT-Series_Service-Manual-November-2-2016.pdf
-  - BACOENG P0559 solenoid valve
+  - BACOENG 2W-025-08 solenoid valve
       - https://bacoeng.com/collections/solenoid-valve/products/ss-brass-dc12v-24v-ac110v-normally-closed-solenoid-valve
   - CZH-Labs MD-D1304T/3-1 three-channel relay module
       - https://czh-labs.com/czh-labs-din-rail-mount-3-channel-12-amp-solid-state-relay-ssr-module-in-432vdc-out-100240vac-p1245.html
-  - uxcell a14062400ux0202 piezo buzzer
-      - http://www.uxcell.com/pcs-324v-85db-sound-electronic-buzzer-alarm-black-12mm-p-608897.html
   - Adafruit 1212 surface-mount breakout board
       - https://www.adafruit.com/product/1212
   - De'Longhi TRN0812T electric oil filled radiator
