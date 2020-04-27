@@ -40,7 +40,7 @@
 *********************************************************************************************************************************
 
   - All code is in the C programming language and is contained within the single file 'Sneedville_Milli-microcontroller.ino',
-    located in thesame directory as this README  
+    located in the same directory as this README  
   - 'electrical_box_layout.png' is the electrical box layout and can be updated with the CAD file 'electrical_box_layout.dwg'  
   - 'electrical-overview.png' is a schematic that gives an overview of all electrical connections for the Cedar Grove project  
   - The 'electrical-overview_orcad_project' folder contains an OrCAD Capture project that can be used to update the schematic  
