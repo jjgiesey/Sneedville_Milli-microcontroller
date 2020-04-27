@@ -1,6 +1,6 @@
 /*
   created 20 Mar 2020 by Casey Williams
-  last modified 26 Apr 2020 by Casey Williams
+  last modified 27 Apr 2020 by Casey Williams
 
   Program for the Ruggeduino in the system-monitoring design originally developed for the Cedar Grove Baptist Church clean water
   project in Sneedville. The code and other relevant files will be updated and maintained as part of a senior design project for
@@ -18,13 +18,13 @@
 
   A brief overview of the structure of this code and how it is used in the project:
   - the REOZONATE LED is triggered for all reset sources (power-on, external, watchdog system, and brown-out)
-  - whenever reset from a safe (uncontaminated) system state, clear the LED/speaker alert with the RESET_REOZONATE button
+  - whenever reset from a safe (uncontaminated) system state, clear the LED alert with the RESET_REOZONATE button
   - calibration points and decision thresholds, the most likely values that need to be changed, are grouped as global constants
   - UV-C fluence rate [mW/cm²], pressure [psig], and differential pressure [psiΔ] readings are handled by timer-based interrupts
   - for these sensors/transmitters, interrupt frequencies were chosen to be > 2.205 / (response time from datasheet [s])
   - the interrupts also handle the LED outputs and button/switch inputs
   - the SOLENOID_POWER, HEATER_POWER, and UV_POWER switches correspond to being on when HIGH and off when LOW
-  - system flow, UV-C fluence [mW-s/cm²], and temperatures are determined once per ~49 seconds by the main loop
+  - system flow, UV-C fluence [mW-s/cm²], and temperatures [°F] are determined once per ~49 seconds by the main loop
   - general code order: globals -> setup/loop -> interrupts -> sensor/transmitter read functions -> output decision functions
 
   For more information on the project, see the 'README.md' file in the Github repository.
