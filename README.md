@@ -39,7 +39,7 @@
 ###### Repository structure
 *********************************************************************************************************************************
 
-  - All code is in the C programming language and is contained within the single file 'SneedvilleMilli-microcontroller.ino',
+  - All code is in the C programming language and is contained within the single file 'Sneedville_Milli-microcontroller.ino',
     located in thesame directory as this README  
   - 'electrical_box_layout.png' is the electrical box layout and can be updated with the CAD file 'electrical_box_layout.dwg'  
   - 'electrical-overview.png' is a schematic that gives an overview of all electrical connections for the Cedar Grove project  
