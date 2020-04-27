@@ -9,7 +9,7 @@
   The generic version of the project that lacks the freeze protection features that are specialized to the Sneedville
   implementation is maintained in a different GitHub repository:  
   <br>
-  https://github.com/Milligan-Engineering/Milli-microcontroller 
+  https://github.com/Milligan-Engineering/Milli-microcontroller  
   <br>
   Should the project require maintenance/changes/improvements/additions in the future, this repository should serve as a
   reference for other contributors.  
